@@ -90,7 +90,6 @@ clearIsland x y gmap | (x,y) `notElem` (indices gmap) = (gmap,0)
 {- This takes an array and returns a list of coordinates that contain non-zero
  - values in them.  The list comprehension iterates over the entire list of
  - possible indices, and comparing the value at those locations to zero.
- -
  -}
 findNonZero :: GrassMap-> [(Int,Int)]
 findNonZero gmap =  x
