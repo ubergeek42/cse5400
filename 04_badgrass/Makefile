@@ -1,5 +1,6 @@
 # Various files used by the compilation process
 TESTFILE=testdata.txt
+#TESTFILE=badgras-209.inp
 MAIN=Main.hs
 
 # Build the components
