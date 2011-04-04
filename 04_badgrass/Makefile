@@ -5,7 +5,7 @@ MAIN=Main.hs
 
 # Build the components
 all:
-	ghc -o main $(MAIN)
+	ghc --make -o main $(MAIN)
 
 # Test them
 test: all

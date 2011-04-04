@@ -7,14 +7,14 @@
 module Main where
 
 import Text.Printf
-import Data.Array
+import Data.Array.Diff
 
 main :: IO()
 main = interact(display . map calculate . readInput)
 
 
 -- A 2D array that holds Ints
-type GrassMap = Array (Int,Int) Int
+type GrassMap = DiffUArray (Int,Int) Int
 -- Width, Height, Array representing the grass
 type Pasture = (Int, Int, GrassMap)
 
@@ -62,7 +62,11 @@ countIslands :: [(Int,Int)]->GrassMap-> Int
 countIslands [] _ = 0
 countIslands ((x,y):_) gmap = n + (countIslands (findNonZero newmap) newmap)
     where
-        (newmap,n) = clearIsland x y gmap
+        (newmap,n) = doClear gmap (clearIsland x y gmap [])
+
+doClear :: GrassMap->[(Int,Int)]->(GrassMap, Int)
+doClear gmap [] = (gmap, 0)
+doClear gmap toclear = (gmap // (zip toclear (repeat 0)),1)
 
 {- Does a flood-clear starting at location x,y
 -- Returns 0 if there was nothing to clear(i.e. no island here)
@@ -71,21 +75,25 @@ countIslands ((x,y):_) gmap = n + (countIslands (findNonZero newmap) newmap)
  - Does the naive thing and clears the current element, then recursively calls
  - itself on each neighboring element, passing the intermediate results along
  -}
-clearIsland:: Int->Int->GrassMap-> (GrassMap, Int)
-clearIsland x y gmap | (x,y) `notElem` (indices gmap) = (gmap,0)
-                     | gmap!(x,y)==0 = (gmap, 0)
-                     | otherwise     = (ret,  1)
+clearIsland:: Int->Int->GrassMap->[(Int,Int)]->[(Int,Int)]
+clearIsland x y gmap v | (x,y) `notElem` (indices gmap) = v  -- Skip out of bounds elements
+                       | (x,y) `elem` v                 = v  -- Skip places we have visited
+                       | gmap!(x,y) == 0                = v  -- Skip places that are zero(bounds of the island)
+                       | otherwise                      = ret  -- Recurse to all surrounding blocks
     where
         -- The use of fst through here is just to get rid of the number, which
         -- only matters to the calling function(and not to the recursive calls)
-        ret = fst $ clearIsland   (x)   (y+1) $
-                fst $ clearIsland (x)   (y-1) $
-                fst $ clearIsland (x+1) (y+1) $
-                fst $ clearIsland (x+1) (y)   $
-                fst $ clearIsland (x+1) (y-1) $
-                fst $ clearIsland (x-1) (y+1) $
-                fst $ clearIsland (x-1) (y)   $
-                fst $ clearIsland (x-1) (y-1) (gmap // (((x,y),0):[]))
+        ret = clearIsland   (x)   (y+1) gmap $
+                clearIsland (x)   (y-1) gmap $
+                clearIsland (x+1) (y+1) gmap $
+                clearIsland (x+1) (y)   gmap $
+                clearIsland (x+1) (y-1) gmap $
+                clearIsland (x-1) (y+1) gmap $
+                clearIsland (x-1) (y)   gmap $
+                clearIsland (x-1) (y-1) gmap newv
+            where
+                --gmapn = gmap // (((x,y),0):[])
+                newv = (x,y):v
 
 {- This takes an array and returns a list of coordinates that contain non-zero
  - values in them.  The list comprehension iterates over the entire list of
