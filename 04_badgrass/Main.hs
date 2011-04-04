@@ -64,22 +64,23 @@ countIslands ((x,y):_) gmap = 1 + (countIslands (findNonZero newmap) newmap)
     where
         newmap = clearIsland x y gmap
 
-doClear :: GrassMap->[(Int,Int)]->(GrassMap, Int)
-doClear gmap [] = (gmap, 0)
-doClear gmap toclear = (gmap // (zip toclear (repeat 0)),1)
+--doClear :: GrassMap->[(Int,Int)]->(GrassMap, Int)
+--doClear gmap [] = (gmap, 0)
+--doClear gmap toclear = (gmap // (zip toclear (repeat 0)),1)
 
 {- Does a flood-clear starting at location x,y
--- Returns 0 if there was nothing to clear(i.e. no island here)
+ - Returns 0 if there was nothing to clear(i.e. no island here)
  - Returns 1 if it cleared something(i.e. there was an island here)
  -
  - Does the naive thing and clears the current element, then recursively calls
  - itself on each neighboring element, passing the intermediate results along
  -}
 clearIsland:: Int->Int->GrassMap->GrassMap
-clearIsland x y gmap | (x,y) `notElem` (indices gmap) = gmap  -- Skip out of bounds elements
+clearIsland x y gmap | (x<0) || (y<0) || (x>maxX) || (y>maxY) = gmap  -- Skip out of bounds elements
                      | gmap!(x,y) == 0                = gmap  -- Skip places that are zero(bounds of the island)
                      | otherwise                      = ret   -- Recurse to all surrounding blocks
     where
+        ((_,_),(maxX,maxY)) = bounds gmap
         -- The use of fst through here is just to get rid of the number, which
         -- only matters to the calling function(and not to the recursive calls)
         ret = clearIsland   (x)   (y+1) $
